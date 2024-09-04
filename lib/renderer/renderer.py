@@ -18,7 +18,7 @@ class Renderer:
         self.ldraw_parts_path = os.path.join(ldraw_path, "parts")
         self.ldraw_unofficial_parts_path = os.path.join(ldraw_path, "unofficial", "parts")
         self.has_imported_at_least_once = False
-        self.ldr_config = LdrConfig(ldraw_path="./ldraw")
+        self.ldr_config = LdrConfig(ldraw_path=ldraw_path)
         self.ldr_config.open()
 
     def render_part(self, ldraw_part_id, options):
