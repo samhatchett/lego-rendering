@@ -14,7 +14,7 @@ from lib.renderer.render_options import RenderOptions, Quality, LightingStyle, L
 from lib.colors import RebrickableColors, RebrickableColorsById
 
 import io_scene_importldraw as ld
-ld.register()
+# ld.register()
 
 
 """
