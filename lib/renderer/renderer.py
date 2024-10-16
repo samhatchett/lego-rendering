@@ -35,7 +35,33 @@ class Renderer:
         bpy.context.scene.render.resolution_y = options.render_height
         bpy.context.scene.render.film_transparent = options.transparent_background
         bpy.context.scene.view_settings.view_transform = 'Standard'
-        bpy.data.worlds["World"].node_tree.nodes["Background"].inputs[1].default_value = 0 # turn off ambient lighting
+        # bpy.data.worlds["World"].node_tree.nodes["Background"].inputs[1].default_value = 0 # turn off ambient lighting
+
+        # hijack the scene, remove default background shader and replace it with white.
+        world = bpy.context.scene.world
+        world.use_nodes = True
+        node_tree = world.node_tree
+        # Find the environment texture node (if it exists)
+        for node in node_tree.nodes:
+            if node.type == 'TEX_ENVIRONMENT':
+                node_tree.nodes.remove(node)  # Remove the EXR texture node
+
+        # Get the background node, or create one if it doesn't exist
+        bg_node = node_tree.nodes.get('Background')
+        if bg_node is None:
+            bg_node = node_tree.nodes.new(type='ShaderNodeBackground')
+
+        # Set the color to white (RGB: 1, 1, 1)
+        bg_node.inputs[0].default_value = (1, 1, 1, 1)  # (R, G, B, A) values, A=1 means fully opaque
+        bg_node.inputs[1].default_value = 0.8
+        # Make sure the background is connected to the World Output
+        world_output_node = node_tree.nodes.get('World Output')
+        if world_output_node is None:
+            world_output_node = node_tree.nodes.new(type='ShaderNodeOutputWorld')
+
+        # Connect the background node to the World Output node
+        node_tree.links.new(bg_node.outputs['Background'], world_output_node.inputs['Surface'])
+
 
         rotation = options.part_rotation_radian
         rotation = (rotation[0]+ radians(270), rotation[1], rotation[2] + radians(90)) # parts feel in a natural orientation with 90 degree z rotation
@@ -132,11 +158,13 @@ class Renderer:
         # https://github.com/TobyLobster/ImportLDraw/blob/09dd286d294672c816d33e70ac10146beb69693c/importldraw.py
         bpy.ops.import_scene.importldraw(filepath=name, **{
             "ldrawPath": os.path.abspath(self.ldraw_path),
-            "addEnvironment": True,                  # add a white ground plane
+            "addEnvironment": False,                  # add a white ground plane
             "resPrims": options.res_prisms,          # high resolution primitives
             "useLogoStuds": options.use_logo_studs,  # LEGO logo on studs
             "look": options.look.value,              # normal (realistic) or instructions (line art)
             "colourScheme": "ldraw",
+            "bevelEdges": True,
+            "bevelWidth": 0.8
         })
 
         bpy.ops.object.select_all(action='DESELECT')
@@ -162,5 +190,5 @@ class Renderer:
 
         # Clear caches. For the same reason above (LDRConfig changes)
         if self.has_imported_at_least_once:
-            LegoColours.reload()
+            #LegoColours.reload()
             BlenderMaterials.clearCache()

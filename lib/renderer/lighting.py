@@ -16,16 +16,16 @@ def setup_lighting(options):
 
 def default_lighting(options):
     light_data = bpy.data.lights.new(name="KeyLight", type='AREA')
-    light_data.energy = 300
+    light_data.energy = 200
     light_data.shape = 'SQUARE'
     light_data.size = 5
     light_data.color = (1, 1, 1)
     light = bpy.data.objects.new(name="KeyLight", object_data=light_data)
     bpy.context.collection.objects.link(light)
     light.location = (0.1, 0, 0)
-    move_object_away_from_origin(light, 4.5)
+    move_object_away_from_origin(light, 6.5)
     rotate_around_z_origin(light, options.light_angle)
-    set_height_by_angle(light, 60)
+    set_height_by_angle(light, 30)
     aim_towards_origin(light)
     return light
 
